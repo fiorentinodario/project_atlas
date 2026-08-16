@@ -6,9 +6,10 @@ from flask_cors import CORS
 from project_atlas import models  # noqa: F401
 from project_atlas.__version__ import __version__
 from project_atlas.api import api_blueprint
+from project_atlas.auth.jwt_callbacks import register_jwt_callbacks
 from project_atlas.config import config_by_name
 from project_atlas.errors import register_error_handlers
-from project_atlas.extensions import db, migrate
+from project_atlas.extensions import db, jwt, migrate
 
 
 def create_app(
@@ -26,8 +27,14 @@ def create_app(
     if config_override:
         app.config.from_mapping(config_override)
 
-    if config_name == "production" and app.config["SECRET_KEY"] == "development-only-secret":
-        raise RuntimeError("SECRET_KEY must be set in the production environment")
+    if config_name == "production":
+        insecure_keys = {
+            "SECRET_KEY": "development-only-secret",
+            "JWT_SECRET_KEY": "development-only-jwt-secret-change-me",
+        }
+        missing_keys = [key for key, default in insecure_keys.items() if app.config[key] == default]
+        if missing_keys:
+            raise RuntimeError(f"Production secrets must be set: {', '.join(missing_keys)}")
 
     CORS(
         app,
@@ -36,6 +43,8 @@ def create_app(
     )
 
     db.init_app(app)
+    jwt.init_app(app)
+    register_jwt_callbacks(jwt)
     migrate.init_app(app, db)
 
     app.register_blueprint(api_blueprint, url_prefix="/api/v1")

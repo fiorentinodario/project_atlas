@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, and initial database migration are implemented; authentication and AI services remain planned.
+This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, initial database migration, and email/password authentication are implemented; project workflows and AI services remain planned.
 
 ## System Overview
 
@@ -27,6 +27,26 @@ The frontend uses React and TypeScript, with Tailwind CSS as the primary styling
 The Flask API uses an application factory, environment-specific configuration, versioned blueprints, restricted CORS, and a consistent JSON error contract. HTTP handlers will validate and translate requests; service modules will own future business workflows; persistence and external providers will remain replaceable at their boundaries.
 
 All project-scoped operations will enforce authorization on the server. A project identifier supplied by a client will never be treated as proof of access.
+
+## Authentication
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant API as Flask API
+    participant DB as PostgreSQL
+    Browser->>API: Register or login
+    API->>DB: Verify user and store hashed refresh identifier
+    API-->>Browser: Access JWT + HttpOnly refresh cookie
+    Browser->>API: Authorized request with access JWT
+    API-->>Browser: Protected resource
+    Browser->>API: Refresh cookie + CSRF header
+    API->>DB: Revoke old refresh identifier
+    API->>DB: Store new refresh identifier
+    API-->>Browser: New access JWT + rotated refresh cookie
+```
+
+Passwords are hashed with scrypt. Access tokens expire after 15 minutes and are held only in frontend memory. Seven-day refresh tokens use `HttpOnly`, `SameSite=Lax` cookies and double-submit CSRF protection. Refresh identifiers are hashed before persistence and rotated on every use. Logout revokes the active refresh token; existing access tokens are intentionally not stored server-side and remain valid only until their short expiration.
 
 ## Data
 

@@ -4,14 +4,18 @@ import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
+import { useAuth } from '../auth/useAuth'
 
 export function DashboardPage() {
+  const { user } = useAuth()
+  const firstName = user?.display_name.split(' ')[0] ?? 'there'
+
   return (
     <div className="space-y-8">
       <section className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
         <div>
           <p className="mb-2 text-sm font-semibold text-brand-600">Sunday, August 16</p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Good morning, Dario</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Good morning, {firstName}</h1>
           <p className="mt-2 text-ink-500">Here’s what’s happening across your projects.</p>
         </div>
         <Button><FolderPlus size={18} /> New project</Button>

@@ -1,6 +1,10 @@
 import { Bell, Menu, Search } from 'lucide-react'
+import { useAuth } from '../../auth/useAuth'
 
 export function Header({ onOpenMenu }: { onOpenMenu: () => void }) {
+  const { user } = useAuth()
+  const firstName = user?.display_name.split(' ')[0] ?? 'User'
+  const initials = user?.display_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() ?? 'PA'
   return (
     <header className="sticky top-0 z-20 flex h-20 items-center gap-4 border-b border-slate-200/80 bg-canvas/90 px-4 backdrop-blur-md sm:px-8">
       <button className="rounded-xl p-2 text-ink-700 hover:bg-white lg:hidden" onClick={onOpenMenu} aria-label="Open navigation">
@@ -22,10 +26,10 @@ export function Header({ onOpenMenu }: { onOpenMenu: () => void }) {
           <span className="absolute right-2 top-2 size-2 rounded-full bg-brand-500 ring-2 ring-white" />
         </button>
         <div className="hidden text-right sm:block">
-          <p className="text-sm font-semibold">Dario</p>
+          <p className="text-sm font-semibold">{firstName}</p>
           <p className="text-xs text-ink-500">Workspace owner</p>
         </div>
-        <div className="grid size-10 place-items-center rounded-full bg-ink-950 text-xs font-bold text-white">DF</div>
+        <div className="grid size-10 place-items-center rounded-full bg-ink-950 text-xs font-bold text-white">{initials}</div>
       </div>
     </header>
   )

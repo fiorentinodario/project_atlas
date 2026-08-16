@@ -50,6 +50,7 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 1: base frontend responsive implementata con dashboard dimostrativa e routing.
 - Milestone 2: fondazione API Flask con configurazione per ambiente, health check, CORS e gestione uniforme degli errori.
 - Milestone 3: modello relazionale PostgreSQL con SQLAlchemy e migrazione iniziale Alembic.
+- Milestone 4: autenticazione email/password, JWT con refresh rotation, logout e route frontend protette.
 
 Le funzionalità mostrate nella dashboard usano attualmente dati mock. Persistenza e autenticazione saranno introdotte nei rispettivi milestone.
 
@@ -68,6 +69,7 @@ Controlli di qualità disponibili:
 ```bash
 npm run typecheck
 npm run lint
+npm test
 npm run build
 ```
 
@@ -97,7 +99,19 @@ La variabile `DATABASE_URL` deve puntare a un'istanza PostgreSQL accessibile. Lo
 
 ## Sicurezza
 
-Secret e file di ambiente locali non devono essere aggiunti al repository. I futuri endpoint di autenticazione, caricamento e AI convalideranno gli input e applicheranno sul server l'autorizzazione per ogni progetto.
+Secret e file di ambiente locali non devono essere aggiunti al repository. Gli endpoint convalidano gli input sul server; i futuri endpoint di progetto, caricamento e AI applicheranno anche l'autorizzazione per ogni risorsa.
+
+L'autenticazione usa access token brevi conservati soltanto in memoria e refresh token in cookie `HttpOnly` protetti da CSRF. Nel database viene salvato soltanto l'hash dell'identificatore del refresh token. In produzione i cookie richiedono HTTPS e l'applicazione rifiuta l'avvio con secret predefiniti.
+
+Endpoint disponibili:
+
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+POST /api/v1/auth/logout
+GET  /api/v1/auth/me
+```
 
 ## Licenza
 

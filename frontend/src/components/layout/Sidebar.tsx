@@ -4,10 +4,12 @@ import {
   FolderKanban,
   LayoutDashboard,
   Settings,
+  LogOut,
   Sparkles,
   X,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../auth/useAuth'
 
 const navigation = [
   { label: 'Overview', to: '/', icon: LayoutDashboard },
@@ -22,6 +24,8 @@ type SidebarProps = {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { user, logout } = useAuth()
+  const initials = user?.display_name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() ?? 'PA'
   return (
     <>
       {isOpen && (
@@ -75,11 +79,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           Settings
         </NavLink>
         <div className="flex items-center gap-3 border-t border-slate-100 px-2 pt-4">
-          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-800">DF</div>
+          <div className="grid size-10 shrink-0 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-800">{initials}</div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">Dario Fiorentino</p>
-            <p className="truncate text-xs text-ink-500">dario@example.com</p>
+            <p className="truncate text-sm font-semibold">{user?.display_name}</p>
+            <p className="truncate text-xs text-ink-500">{user?.email}</p>
           </div>
+          <button onClick={() => void logout()} className="rounded-lg p-2 text-ink-500 hover:bg-slate-100 hover:text-ink-950" aria-label="Sign out"><LogOut size={18} /></button>
         </div>
       </aside>
     </>
