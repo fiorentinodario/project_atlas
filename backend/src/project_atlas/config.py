@@ -14,6 +14,10 @@ class BaseConfig:
     CORS_ORIGINS = _cors_origins()
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
+    EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "disabled")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "postgresql+psycopg://atlas:atlas@localhost:5432/project_atlas",

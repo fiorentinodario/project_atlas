@@ -10,6 +10,7 @@ vi.mock('../../documents/api', () => ({
   getDocuments: vi.fn(),
   uploadDocument: vi.fn(),
   deleteDocument: vi.fn(),
+  searchDocuments: vi.fn(),
 }))
 
 describe('DocumentsPanel', () => {
@@ -35,6 +36,8 @@ describe('DocumentsPanel', () => {
       size_bytes: 12,
       status: 'READY' as const,
       processing_error: null,
+      indexed_at: '2026-08-16T12:00:00Z',
+      indexing_error: null,
       created_at: '2026-08-16T12:00:00Z',
       updated_at: '2026-08-16T12:00:00Z',
     }

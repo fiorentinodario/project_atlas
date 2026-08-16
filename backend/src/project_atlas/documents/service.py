@@ -13,6 +13,7 @@ from project_atlas.extensions import db
 from project_atlas.models import ActivityLog, Document, Project, User
 from project_atlas.models.enums import DocumentStatus, ProjectRole
 from project_atlas.projects.service import accessible_project
+from project_atlas.rag.indexing import index_document
 from project_atlas.tasks.service import WRITE_ROLES
 
 ALLOWED_TYPES = {
@@ -31,6 +32,8 @@ def serialize_document(document: Document) -> dict:
         "size_bytes": document.size_bytes,
         "status": document.status.value,
         "processing_error": document.processing_error,
+        "indexed_at": document.indexed_at.isoformat() if document.indexed_at else None,
+        "indexing_error": document.indexing_error,
         "created_at": document.created_at.isoformat(),
         "updated_at": document.updated_at.isoformat(),
     }
@@ -101,6 +104,7 @@ def create_document(project: Project, user: User, file: FileStorage) -> Document
 def process_document(document: Document, extension: str, storage: DocumentStorage) -> None:
     document.status = DocumentStatus.PROCESSING
     db.session.commit()
+    extraction_succeeded = False
     try:
         document.extracted_text = extract_text(
             storage.absolute_path(document.storage_path), extension
@@ -109,6 +113,7 @@ def process_document(document: Document, extension: str, storage: DocumentStorag
             raise ValueError("No text could be extracted from the document")
         document.status = DocumentStatus.READY
         document.processing_error = None
+        extraction_succeeded = True
     except Exception:
         current_app.logger.exception(
             "Document processing failed", extra={"document_id": document.id}
@@ -126,6 +131,8 @@ def process_document(document: Document, extension: str, storage: DocumentStorag
         )
     )
     db.session.commit()
+    if extraction_succeeded:
+        index_document(document, current_app.extensions["embedding_provider"])
 
 
 def accessible_document(

@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import JSON, BigInteger, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -41,6 +42,8 @@ class Document(TimestampMixin, db.Model):
     )
     extracted_text: Mapped[str | None] = mapped_column(Text)
     processing_error: Mapped[str | None] = mapped_column(Text)
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    indexing_error: Mapped[str | None] = mapped_column(Text)
 
     project: Mapped[Project] = relationship(back_populates="documents")
     uploaded_by: Mapped[User] = relationship()
@@ -66,6 +69,7 @@ class DocumentChunk(TimestampMixin, db.Model):
     page_number: Mapped[int | None] = mapped_column(Integer)
     token_count: Mapped[int | None] = mapped_column(Integer)
     chunk_metadata: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536))
 
     document: Mapped[Document] = relationship(back_populates="chunks")
 

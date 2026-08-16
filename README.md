@@ -54,8 +54,9 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 5: CRUD progetti, autorizzazione per membership e workspace frontend.
 - Milestone 6: gestione task con ricerca, filtri, Kanban e activity log.
 - Milestone 7: upload documenti, storage privato, estrazione testuale e stati di elaborazione.
+- Milestone 8: chunking offline, embedding sostituibili, pgvector e ricerca semantica con fonti.
 
-Le funzionalità mostrate nella dashboard usano attualmente dati mock. Persistenza e autenticazione saranno introdotte nei rispettivi milestone.
+Progetti, task e documenti usano dati persistenti tramite API. La ricerca semantica richiede un provider di embedding configurato; in sua assenza il resto dell'applicazione continua a funzionare.
 
 ## Sviluppo locale
 
@@ -129,9 +130,22 @@ DELETE /api/v1/tasks/:taskId
 GET    /api/v1/projects/:projectId/documents
 POST   /api/v1/projects/:projectId/documents
 DELETE /api/v1/documents/:documentId
+POST   /api/v1/documents/:documentId/index
+POST   /api/v1/projects/:projectId/search
 ```
 
 I documenti supportati sono PDF, TXT e Markdown, fino a 10 MB. I file vengono conservati fuori dal controllo versione con nomi generati, mentre il database mantiene metadati, testo estratto e stato di elaborazione.
+
+Per abilitare gli embedding OpenAI nel file `backend/.env`:
+
+```dotenv
+EMBEDDING_PROVIDER=openai
+OPENAI_API_KEY=la-tua-chiave
+EMBEDDING_MODEL=text-embedding-3-small
+EMBEDDING_DIMENSIONS=1536
+```
+
+Il valore predefinito `EMBEDDING_PROVIDER=disabled` non effettua chiamate esterne. I documenti vengono comunque estratti e suddivisi in chunk, mentre la ricerca semantica risponde esplicitamente che il servizio AI non è configurato.
 
 Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 

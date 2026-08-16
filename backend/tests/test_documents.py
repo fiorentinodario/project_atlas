@@ -6,7 +6,7 @@ from flask.testing import FlaskClient
 from sqlalchemy import select
 
 from project_atlas.extensions import db
-from project_atlas.models import Document, Project, ProjectMember, User
+from project_atlas.models import Document, DocumentChunk, Project, ProjectMember, User
 from project_atlas.models.enums import DocumentStatus, ProjectRole
 
 
@@ -70,6 +70,9 @@ def test_text_upload_is_stored_and_processed(app: Flask, client: FlaskClient) ->
         document = db.session.scalar(select(Document))
         assert document is not None
         assert "Authentication is required" in document.extracted_text
+        assert document.indexed_at is None
+        assert document.indexing_error == "Embedding provider is not configured."
+        assert db.session.scalar(select(DocumentChunk)) is not None
         assert Path(app.config["UPLOAD_FOLDER"], document.storage_path).is_file()
 
 

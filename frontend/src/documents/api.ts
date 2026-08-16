@@ -1,5 +1,5 @@
 import { apiRequest } from '../lib/api'
-import type { ProjectDocument } from './types'
+import type { ProjectDocument, SemanticSearchResult } from './types'
 
 export function getDocuments(projectId: string, accessToken: string) {
   return apiRequest<{ data: { items: ProjectDocument[] } }>(
@@ -21,4 +21,12 @@ export function uploadDocument(projectId: string, file: File, accessToken: strin
 
 export function deleteDocument(documentId: string, accessToken: string) {
   return apiRequest<void>(`/documents/${documentId}`, { method: 'DELETE' }, accessToken)
+}
+
+export function searchDocuments(projectId: string, query: string, accessToken: string) {
+  return apiRequest<{ data: { items: SemanticSearchResult[] } }>(
+    `/projects/${projectId}/search`,
+    { method: 'POST', body: JSON.stringify({ query }) },
+    accessToken,
+  )
 }

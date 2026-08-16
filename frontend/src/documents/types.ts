@@ -8,6 +8,19 @@ export type ProjectDocument = {
   size_bytes: number
   status: DocumentStatus
   processing_error: string | null
+  indexed_at: string | null
+  indexing_error: string | null
   created_at: string
   updated_at: string
+}
+
+export type SemanticSearchResult = {
+  chunk_id: string
+  content: string
+  page_number: number | null
+  score: number
+  document: {
+    id: string
+    filename: string
+  }
 }

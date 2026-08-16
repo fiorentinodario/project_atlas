@@ -11,6 +11,7 @@ from project_atlas.auth.jwt_callbacks import register_jwt_callbacks
 from project_atlas.config import config_by_name
 from project_atlas.errors import register_error_handlers
 from project_atlas.extensions import db, jwt, migrate
+from project_atlas.rag.providers import build_embedding_provider
 
 
 def create_app(
@@ -49,6 +50,7 @@ def create_app(
     jwt.init_app(app)
     register_jwt_callbacks(jwt)
     migrate.init_app(app, db)
+    app.extensions["embedding_provider"] = build_embedding_provider(app.config)
 
     app.register_blueprint(api_blueprint, url_prefix="/api/v1")
     register_error_handlers(app)
