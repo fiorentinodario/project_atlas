@@ -27,7 +27,7 @@ class FakeLLMProvider:
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         self.system_prompt = system_prompt
         self.user_prompt = user_prompt
-        return "The project requires JWT authentication."
+        return "The project requires JWT authentication [1]."
 
 
 def register(client: FlaskClient, email: str) -> str:
@@ -86,11 +86,20 @@ def test_assistant_answers_from_project_context(app: Flask, client: FlaskClient)
     )
 
     assert response.status_code == 200
-    assert response.get_json()["data"]["message"] == {
-        "role": "assistant",
-        "content": "The project requires JWT authentication.",
+    message = response.get_json()["data"]["message"]
+    assert message["role"] == "assistant"
+    assert message["content"] == "The project requires JWT authentication [1]."
+    assert message["sources"][0] == {
+        "number": 1,
+        "chunk_id": message["sources"][0]["chunk_id"],
+        "document_id": message["sources"][0]["document_id"],
+        "filename": "requirements.txt",
+        "page_number": 1,
+        "excerpt": "Authentication uses short-lived JWT access tokens.",
+        "score": 1.0,
     }
     assert "Answer only from the supplied project context" in llm_provider.system_prompt
+    assert "matching source marker" in llm_provider.system_prompt
     assert "Name: Atlas" in llm_provider.user_prompt
     assert "requirements.txt" in llm_provider.user_prompt
     assert "short-lived JWT access tokens" in llm_provider.user_prompt
@@ -122,6 +131,23 @@ def test_assistant_hides_project_from_outsider(client: FlaskClient) -> None:
     )
 
     assert response.status_code == 404
+
+
+def test_assistant_does_not_invent_sources_without_retrieval(
+    app: Flask, client: FlaskClient
+) -> None:
+    app.extensions["llm_provider"] = FakeLLMProvider()
+    token = register(client, "owner@example.com")
+    project_id = create_project(client, token)
+
+    response = client.post(
+        f"/api/v1/projects/{project_id}/assistant/messages",
+        json={"question": "What is this project?"},
+        headers=auth(token),
+    )
+
+    assert response.status_code == 200
+    assert response.get_json()["data"]["message"]["sources"] == []
 
 
 def test_assistant_reports_unconfigured_llm_provider(

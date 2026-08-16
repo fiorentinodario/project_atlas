@@ -49,4 +49,25 @@ def create_message(project_id: UUID):
         )
     except LLMProviderError as error:
         raise ApiError("AI_ASSISTANT_UNAVAILABLE", str(error), 503) from error
-    return jsonify({"data": {"message": {"role": "assistant", "content": answer}}})
+    return jsonify(
+        {
+            "data": {
+                "message": {
+                    "role": "assistant",
+                    "content": answer.content,
+                    "sources": [
+                        {
+                            "number": source.number,
+                            "chunk_id": source.chunk_id,
+                            "document_id": source.document_id,
+                            "filename": source.filename,
+                            "page_number": source.page_number,
+                            "excerpt": source.excerpt,
+                            "score": source.score,
+                        }
+                        for source in answer.sources
+                    ],
+                }
+            }
+        }
+    )

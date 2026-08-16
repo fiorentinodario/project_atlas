@@ -1,4 +1,4 @@
-import { Bot, LoaderCircle, Send, Sparkles, UserRound } from 'lucide-react'
+import { Bot, FileText, LoaderCircle, Send, Sparkles, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { askProjectAssistant } from '../../assistant/api'
 import type { AssistantMessage } from '../../assistant/types'
@@ -101,6 +101,30 @@ export function AssistantPanel({ projectId }: { projectId: string }) {
             )}
             <div className={`max-w-3xl rounded-2xl px-4 py-3 text-sm leading-6 ${message.role === 'user' ? 'bg-ink-950 text-white' : 'bg-slate-100 text-ink-700'}`}>
               <p className="whitespace-pre-wrap">{message.content}</p>
+              {message.sources && message.sources.length > 0 && (
+                <div className="mt-4 border-t border-slate-200 pt-3">
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wide text-ink-500">
+                    Sources
+                  </p>
+                  <div className="space-y-2">
+                    {message.sources.map((source) => (
+                      <details key={source.chunk_id} className="rounded-xl bg-white p-3">
+                        <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-ink-700">
+                          <span className="grid size-6 place-items-center rounded-lg bg-brand-50 text-brand-700">
+                            {source.number}
+                          </span>
+                          <FileText size={14} />
+                          <span className="min-w-0 flex-1 truncate">{source.filename}</span>
+                          {source.page_number && <span className="text-ink-500">Page {source.page_number}</span>}
+                        </summary>
+                        <p className="mt-2 border-l-2 border-brand-200 pl-3 text-xs leading-5 text-ink-500">
+                          {source.excerpt}
+                        </p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             {message.role === 'user' && (
               <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-ink-950 text-white">

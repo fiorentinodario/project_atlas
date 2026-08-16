@@ -24,7 +24,21 @@ describe('AssistantPanel', () => {
     const user = userEvent.setup()
     vi.mocked(askProjectAssistant).mockResolvedValue({
       data: {
-        message: { role: 'assistant', content: 'JWT authentication is required.' },
+        message: {
+          role: 'assistant',
+          content: 'JWT authentication is required [1].',
+          sources: [
+            {
+              number: 1,
+              chunk_id: 'chunk-id',
+              document_id: 'document-id',
+              filename: 'requirements.pdf',
+              page_number: 4,
+              excerpt: 'Authentication must use JWT access tokens.',
+              score: 0.97,
+            },
+          ],
+        },
       },
     })
     render(<AssistantPanel projectId="project-id" />)
@@ -38,6 +52,11 @@ describe('AssistantPanel', () => {
       [],
       'access-token',
     )
-    expect(await screen.findByText('JWT authentication is required.')).toBeInTheDocument()
+    expect(await screen.findByText('JWT authentication is required [1].')).toBeInTheDocument()
+    expect(screen.getByText('requirements.pdf')).toBeInTheDocument()
+    expect(screen.getByText('Page 4')).toBeInTheDocument()
+
+    await user.click(screen.getByText('requirements.pdf'))
+    expect(screen.getByText('Authentication must use JWT access tokens.')).toBeInTheDocument()
   })
 })
