@@ -1,0 +1,49 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: project_atlas
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: atlas
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlas -d project_atlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://atlas:atlas@db:5432/project_atlas
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in the root .env file}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in the root .env file}
+      CORS_ORIGINS: http://localhost:8080
+      UPLOAD_FOLDER: /app/instance/uploads
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-disabled}
+      LLM_PROVIDER: ${LLM_PROVIDER:-disabled}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - uploads_data:/app/instance/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads_data:

@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, project, task, and initial document workflows are implemented; vector retrieval and AI workflows remain planned.
+ProjectAtlas implements the complete portfolio MVP: authenticated project workspaces, tasks, document ingestion, vector retrieval, grounded assistant responses, citations, decision review, structured analysis, AI task conversion, activity dashboards, containers, and CI.
 
 ## System Overview
 
@@ -20,13 +20,13 @@ The repository uses a monorepo so frontend, backend, infrastructure, tests, and 
 
 ## Frontend
 
-The frontend uses React and TypeScript, with Tailwind CSS as the primary styling system. Its responsive application shell, routing, initial reusable components, and mock dashboard are implemented. Server state, authentication state, and local interface state will remain separate as data integration is introduced.
+The frontend uses React and TypeScript, with Tailwind CSS as the primary styling system. The responsive application shell, routing, reusable components, authenticated server integration, project tools, and live dashboard are implemented. Authentication state remains in a focused context; request data and transient interface state stay local to their features.
 
 ## Backend
 
-The Flask API uses an application factory, environment-specific configuration, versioned blueprints, restricted CORS, and a consistent JSON error contract. HTTP handlers will validate and translate requests; service modules will own future business workflows; persistence and external providers will remain replaceable at their boundaries.
+The Flask API uses an application factory, environment-specific configuration, versioned blueprints, restricted CORS, security headers, and a consistent JSON error contract. HTTP handlers validate and translate requests, service modules own business workflows, and persistence and external providers remain replaceable at their boundaries.
 
-All project-scoped operations will enforce authorization on the server. A project identifier supplied by a client will never be treated as proof of access.
+All project-scoped operations enforce authorization on the server. A project identifier supplied by a client is never treated as proof of access.
 
 Project management now applies this rule through a shared authorized lookup that joins projects to memberships for the authenticated user. Non-members receive `404` to avoid leaking private project existence. `OWNER` and `ADMIN` may update a project, while destructive deletion is restricted to `OWNER`. Project creation writes the project, owner membership, and initial activity record in one transaction.
 
@@ -54,7 +54,7 @@ Passwords are hashed with scrypt. Access tokens expire after 15 minutes and are 
 
 ## Data
 
-PostgreSQL is the system of record for users, projects, memberships, documents, chunks, tasks, decisions, analyses, activity, and refresh-token state. SQLAlchemy models and an Alembic migration now define the initial schema. Foreign keys, unique constraints, enums, and targeted indexes preserve integrity and support expected access patterns. pgvector remains planned for semantic search so embeddings and their document metadata can be queried together.
+PostgreSQL is the system of record for users, projects, memberships, documents, chunks, tasks, decisions, analyses, activity, and refresh-token state. SQLAlchemy models and versioned Alembic migrations define the schema. Foreign keys, unique constraints, enums, and targeted indexes preserve integrity. pgvector performs project-filtered semantic search beside transactional metadata.
 
 ```mermaid
 erDiagram
@@ -88,7 +88,7 @@ flowchart LR
     Generate --> Answer[Answer + citations]
 ```
 
-Ingestion, embedding, retrieval, prompt construction, and generation will be separate services. Chunks will retain document, page, and chunk metadata for citations. Structured model output will be schema-validated before it can affect stored project data, and suggested decisions or tasks will require user confirmation.
+Ingestion, embedding, retrieval, prompt construction, and generation are separate services. Chunks retain document, page, and chunk metadata for citations. Structured model output is schema-validated before it affects stored data, and suggested decisions or tasks require explicit user action.
 
 The implemented ingestion stage validates PDF, TXT, and Markdown uploads, saves them beneath a private configured storage root, and extracts text through format-specific functions. PDF pages are separated with form-feed boundaries so page metadata can be preserved during later chunking. Malformed or textless documents transition to `FAILED` with a safe public error instead of breaking unrelated application workflows. Processing is synchronous for now but isolated from HTTP routing so it can move to a background worker later.
 
@@ -115,6 +115,10 @@ Flask makes application composition and service boundaries explicit, which is us
 
 Keeping relational data and vectors in PostgreSQL reduces operational complexity and makes metadata filtering straightforward. A dedicated vector database could scale independently, but is unnecessary for the expected portfolio workload.
 
-### Synchronous ingestion first
+### Synchronous ingestion
 
-The first ingestion pipeline will be synchronous but isolated behind a service boundary. A background queue is appropriate once processing latency or volume justifies the added operational complexity.
+The ingestion pipeline is synchronous but isolated behind a service boundary. A background queue is appropriate once processing latency or volume justifies the added operational complexity.
+
+## Delivery
+
+Docker Compose runs Nginx, the React production build, Gunicorn, Flask, and PostgreSQL with pgvector. The backend container applies migrations before serving traffic and writes uploads to a named volume. GitHub Actions independently validates Python and TypeScript quality gates, then verifies both container builds.

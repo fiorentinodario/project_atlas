@@ -1,96 +1,48 @@
-import { ArrowRight, Clock3, FolderPlus, Send, Sparkles } from 'lucide-react'
-import { activities, projects, stats } from '../data/dashboard'
+import { ArrowRight, CheckCircle2, Clock3, FolderKanban, FolderPlus, ListTodo, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { EmptyState } from '../components/ui/EmptyState'
 import { ProgressBar } from '../components/ui/ProgressBar'
-import { useAuth } from '../auth/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { getDashboard } from '../dashboard/api'
+import type { DashboardData } from '../dashboard/types'
+import { ApiClientError } from '../lib/api'
+
+const labels: Record<string, string> = {
+  PROJECT_CREATED: 'created the project', DOCUMENT_UPLOADED: 'uploaded a document',
+  TASK_CREATED: 'created a task', TASK_COMPLETED: 'completed a task',
+  AI_ANALYSIS_COMPLETED: 'completed an AI analysis', AI_TASKS_CREATED: 'created AI tasks',
+  DECISION_CREATED: 'recorded a decision', DECISION_CONFIRMED: 'confirmed a decision',
+}
 
 export function DashboardPage() {
-  const { user } = useAuth()
+  const { user, accessToken } = useAuth()
   const navigate = useNavigate()
-  const firstName = user?.display_name.split(' ')[0] ?? 'there'
-
-  return (
-    <div className="space-y-8">
-      <section className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="mb-2 text-sm font-semibold text-brand-600">Sunday, August 16</p>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Good morning, {firstName}</h1>
-          <p className="mt-2 text-ink-500">Here’s what’s happening across your projects.</p>
-        </div>
-        <Button onClick={() => navigate('/projects')}><FolderPlus size={18} /> New project</Button>
-      </section>
-
-      <section aria-label="Project statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map(({ change, icon: Icon, label, tone, value }) => (
-          <Card key={label} className="p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-ink-500">{label}</p>
-                <p className="mt-2 text-3xl font-bold tracking-tight">{value}</p>
-              </div>
-              <span className={`grid size-11 place-items-center rounded-xl ${tone}`}><Icon size={20} aria-hidden="true" /></span>
-            </div>
-            <p className="mt-4 text-xs font-medium text-ink-500">{change}</p>
-          </Card>
-        ))}
-      </section>
-
-      <section className="relative overflow-hidden rounded-3xl bg-ink-950 px-5 py-6 text-white shadow-panel sm:px-7">
-        <div className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full bg-brand-500/20 blur-3xl" />
-        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center">
-          <div className="flex flex-1 items-start gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white/10 text-brand-100"><Sparkles size={20} /></span>
-            <div>
-              <h2 className="font-semibold">Ask ProjectAtlas</h2>
-              <p className="mt-1 text-sm text-slate-300">Search knowledge across every project workspace.</p>
-            </div>
-          </div>
-          <form className="flex w-full gap-2 rounded-2xl bg-white p-2 lg:max-w-xl" onSubmit={(event) => event.preventDefault()}>
-            <label htmlFor="ai-question" className="sr-only">Ask anything about your projects</label>
-            <input id="ai-question" className="min-w-0 flex-1 rounded-xl px-3 text-sm text-ink-950 placeholder:text-slate-400" placeholder="Ask anything about your projects..." />
-            <Button type="submit" className="size-10 px-0" aria-label="Send question"><Send size={17} /></Button>
-          </form>
-        </div>
-      </section>
-
-      <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
-        <section aria-labelledby="recent-projects-title">
-          <div className="mb-4 flex items-center justify-between">
-            <div><h2 id="recent-projects-title" className="text-xl font-bold">Recent projects</h2><p className="mt-1 text-sm text-ink-500">Your most recently active workspaces</p></div>
-            <Button variant="ghost">View all <ArrowRight size={16} /></Button>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-            {projects.map((project) => (
-              <Card key={project.name} className="group p-5 transition hover:-translate-y-0.5 hover:border-brand-500/40">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="grid size-11 place-items-center rounded-xl bg-brand-50 font-bold text-brand-700">{project.name.slice(0, 2).toUpperCase()}</span>
-                  <Badge tone="green">{project.tag}</Badge>
-                </div>
-                <h3 className="mt-5 font-bold">{project.name}</h3>
-                <p className="mt-2 min-h-10 text-sm leading-5 text-ink-500">{project.description}</p>
-                <div className="mt-5 flex items-center justify-between text-xs"><span className="font-semibold">{project.progress}% complete</span><span className="text-ink-500">{project.tasks} tasks</span></div>
-                <div className="mt-2"><ProgressBar value={project.progress} /></div>
-                <div className="mt-5 flex items-center gap-1.5 border-t border-slate-100 pt-4 text-xs text-ink-500"><Clock3 size={14} /> Updated {project.updated}</div>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        <section aria-labelledby="activity-title">
-          <div className="mb-4"><h2 id="activity-title" className="text-xl font-bold">Recent activity</h2><p className="mt-1 text-sm text-ink-500">Latest updates from your workspace</p></div>
-          <Card className="divide-y divide-slate-100 px-5">
-            {activities.map((activity) => (
-              <div key={`${activity.text}-${activity.time}`} className="flex gap-3 py-4">
-                <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${activity.color}`}>{activity.initials}</span>
-                <div className="min-w-0"><p className="text-sm leading-5"><span className="font-semibold">{activity.initials === 'AI' ? 'Atlas AI' : 'You'}</span> {activity.text}</p><p className="mt-1 truncate text-xs text-ink-500">{activity.project} · {activity.time}</p></div>
-              </div>
-            ))}
-          </Card>
-        </section>
-      </div>
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    if (!accessToken) return
+    getDashboard(accessToken).then((response) => setData(response.data)).catch((caught) => setError(caught instanceof ApiClientError ? caught.message : 'Unable to load the dashboard.'))
+  }, [accessToken])
+  if (!data && !error) return <div className="space-y-4" role="status" aria-label="Loading dashboard">{[1, 2, 3].map((item) => <div key={item} className="h-32 animate-pulse rounded-2xl bg-slate-200/70" />)}</div>
+  if (error) return <Card className="p-8"><p role="alert" className="text-red-700">{error}</p></Card>
+  if (!data) return null
+  const stats = [
+    ['Active projects', data.stats.active_projects, FolderKanban, 'bg-brand-50 text-brand-700'],
+    ['Total tasks', data.stats.total_tasks, ListTodo, 'bg-sky-50 text-sky-700'],
+    ['In progress', data.stats.tasks_in_progress, Clock3, 'bg-amber-50 text-amber-700'],
+    ['Completed', data.stats.completed_tasks, CheckCircle2, 'bg-emerald-50 text-emerald-700'],
+  ] as const
+  return <div className="space-y-8">
+    <section className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="mb-2 text-sm font-semibold text-brand-600">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</p><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Good morning, {user?.display_name.split(' ')[0] ?? 'there'}</h1><p className="mt-2 text-ink-500">Here’s what’s happening across your projects.</p></div><Button onClick={() => navigate('/projects')}><FolderPlus size={18} /> New project</Button></section>
+    <section aria-label="Project statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{stats.map(([label, value, Icon, tone]) => <Card key={label} className="p-5"><div className="flex justify-between"><div><p className="text-sm text-ink-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div><span className={`grid size-11 place-items-center rounded-xl ${tone}`}><Icon size={20} /></span></div></Card>)}</section>
+    <section className="rounded-3xl bg-ink-950 px-6 py-7 text-white"><div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex gap-4"><span className="grid size-11 place-items-center rounded-xl bg-white/10"><Sparkles size={20} /></span><div><h2 className="font-semibold">Ask ProjectAtlas</h2><p className="mt-1 text-sm text-slate-300">Choose a project to ask questions grounded in its knowledge.</p></div></div><Button variant="secondary" onClick={() => navigate('/projects')}>Choose project <ArrowRight size={16} /></Button></div></section>
+    <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
+      <section><div className="mb-4 flex justify-between"><div><h2 className="text-xl font-bold">Recent projects</h2><p className="text-sm text-ink-500">Your recently active workspaces</p></div><Button variant="ghost" onClick={() => navigate('/projects')}>View all <ArrowRight size={16} /></Button></div>{data.recent_projects.length === 0 ? <EmptyState icon={FolderKanban} title="No projects yet" description="Create your first project workspace." /> : <div className="grid gap-4 md:grid-cols-2">{data.recent_projects.map((project) => <Card key={project.id} className="cursor-pointer p-5" onClick={() => navigate(`/projects/${project.id}`)}><div className="flex justify-between"><span className="grid size-11 place-items-center rounded-xl bg-brand-50 font-bold text-brand-700">{project.name.slice(0, 2).toUpperCase()}</span><Badge tone={project.status === 'ACTIVE' ? 'green' : 'slate'}>{project.status}</Badge></div><h3 className="mt-4 font-bold">{project.name}</h3><p className="mt-2 line-clamp-2 text-sm text-ink-500">{project.description ?? 'No description'}</p><div className="mt-4 flex justify-between text-xs"><span>{project.progress}% complete</span><span>{project.task_count} tasks · {project.document_count} docs</span></div><div className="mt-2"><ProgressBar value={project.progress} /></div></Card>)}</div>}</section>
+      <section><div className="mb-4"><h2 className="text-xl font-bold">Recent activity</h2><p className="text-sm text-ink-500">Latest workspace updates</p></div><Card className="divide-y divide-slate-100 px-5">{data.recent_activity.length === 0 ? <p className="py-8 text-center text-sm text-ink-500">No activity yet.</p> : data.recent_activity.map((activity) => <button key={activity.id} onClick={() => navigate(`/projects/${activity.project.id}`)} className="flex w-full gap-3 py-4 text-left"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-brand-50 text-xs font-bold text-brand-700">{activity.actor?.display_name.slice(0, 2).toUpperCase() ?? 'AI'}</span><span><span className="block text-sm"><strong>{activity.actor?.display_name ?? 'System'}</strong> {labels[activity.action] ?? activity.action.toLowerCase().replaceAll('_', ' ')}</span><span className="mt-1 block text-xs text-ink-500">{activity.project.name} · {new Date(activity.created_at).toLocaleString()}</span></span></button>)}</Card></section>
     </div>
-  )
+  </div>
 }

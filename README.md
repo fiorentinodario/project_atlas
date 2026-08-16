@@ -4,7 +4,7 @@ ProjectAtlas è una piattaforma di gestione e conoscenza dei progetti basata sul
 
 Il repository è sviluppato come progetto portfolio con attenzione ad architettura, autorizzazione sicura, affidabilità delle funzionalità AI, test automatici e interfaccia responsive professionale.
 
-## Funzionalità previste per l'MVP
+## Funzionalità dell'MVP
 
 - Autenticazione tramite email e password
 - Spazi di lavoro con controllo degli accessi basato sulla proprietà
@@ -38,11 +38,15 @@ project-atlas/
 
 ## Architettura
 
-Il client React comunicherà con un'API REST Flask versionata. Il backend gestirà autenticazione, autorizzazione, regole applicative, acquisizione dei documenti e orchestrazione AI. PostgreSQL conserverà i dati applicativi, mentre pgvector manterrà gli embedding vicini ai metadati e ai dati transazionali del progetto.
+Il client React comunica con un'API REST Flask versionata. Il backend gestisce autenticazione, autorizzazione, regole applicative, acquisizione dei documenti e orchestrazione AI. PostgreSQL conserva i dati applicativi, mentre pgvector mantiene gli embedding vicini ai metadati e ai dati transazionali del progetto.
 
-Le responsabilità AI saranno separate in servizi di acquisizione, embedding, recupero, costruzione dei prompt e generazione. Questa divisione rende i provider sostituibili, permette test deterministici e mantiene utilizzabili le funzionalità non AI durante eventuali indisponibilità del provider.
+Le responsabilità AI sono separate in servizi di acquisizione, embedding, recupero, costruzione dei prompt e generazione. Questa divisione rende i provider sostituibili, permette test deterministici e mantiene utilizzabili le funzionalità non AI durante eventuali indisponibilità del provider.
 
-Consulta [docs/architecture.md](docs/architecture.md) per il piano architetturale corrente.
+Consulta [docs/architecture.md](docs/architecture.md) per l'architettura e [docs/security.md](docs/security.md) per il threat model e i rischi residui.
+
+## Screenshot
+
+Per evitare immagini dimostrative non corrispondenti al prodotto, gli screenshot devono essere acquisiti dall'app avviata con dati demo reali. Dopo `docker compose up --build`, cattura almeno dashboard, workspace, assistente con fonti e analisi AI in `docs/screenshots/` e collegali qui prima della pubblicazione definitiva del repository.
 
 ## Stato dello sviluppo
 
@@ -60,6 +64,11 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 11: decisioni manuali, rilevamento AI con fonti e conferma umana obbligatoria.
 - Milestone 12: analisi AI strutturata con riepilogo, requisiti, rischi, domande e task suggeriti.
 - Milestone 13: selezione dei suggerimenti e creazione atomica di task AI tracciabili.
+- Milestone 14: dashboard con statistiche aggregate, progetti recenti e activity feed.
+- Milestone 15: copertura di integrazione ampliata e hardening delle risposte HTTP.
+- Milestone 16: container Docker per frontend, backend e PostgreSQL/pgvector.
+- Milestone 17: pipeline GitHub Actions per lint, test, build e immagini container.
+- Milestone 18: audit responsive/accessibilità e documentazione portfolio completata.
 
 Progetti, task e documenti usano dati persistenti tramite API. La ricerca semantica richiede un provider di embedding configurato; in sua assenza il resto dell'applicazione continua a funzionare.
 
@@ -106,9 +115,29 @@ pytest
 
 La variabile `DATABASE_URL` deve puntare a un'istanza PostgreSQL accessibile. Lo schema non viene creato automaticamente all'avvio: ogni modifica passa attraverso migrazioni versionate.
 
+## Avvio con Docker
+
+Crea un file `.env` nella radice con due secret casuali e, facoltativamente, la chiave OpenAI:
+
+```dotenv
+SECRET_KEY=un-secret-lungo-e-casuale
+JWT_SECRET_KEY=un-secondo-secret-lungo-e-casuale
+OPENAI_API_KEY=
+EMBEDDING_PROVIDER=disabled
+LLM_PROVIDER=disabled
+```
+
+Avvia l'intero stack:
+
+```bash
+docker compose up --build
+```
+
+L'applicazione sarà disponibile su `http://localhost:8080`. Il backend applica automaticamente le migrazioni prima di avviare Gunicorn. PostgreSQL e i documenti caricati usano volumi persistenti.
+
 ## Sicurezza
 
-Secret e file di ambiente locali non devono essere aggiunti al repository. Gli endpoint convalidano gli input sul server; i futuri endpoint di progetto, caricamento e AI applicheranno anche l'autorizzazione per ogni risorsa.
+Secret e file di ambiente locali non devono essere aggiunti al repository. Gli endpoint convalidano gli input sul server e applicano l'autorizzazione a ogni risorsa di progetto.
 
 L'autenticazione usa access token brevi conservati soltanto in memoria e refresh token in cookie `HttpOnly` protetti da CSRF. Nel database viene salvato soltanto l'hash dell'identificatore del refresh token. In produzione i cookie richiedono HTTPS e l'applicazione rifiuta l'avvio con secret predefiniti.
 
@@ -150,6 +179,7 @@ POST   /api/v1/decisions/:decisionId/reject
 GET    /api/v1/projects/:projectId/analyses/latest
 POST   /api/v1/projects/:projectId/analyses
 POST   /api/v1/analyses/:analysisId/tasks
+GET    /api/v1/dashboard
 ```
 
 I documenti supportati sono PDF, TXT e Markdown, fino a 10 MB. I file vengono conservati fuori dal controllo versione con nomi generati, mentre il database mantiene metadati, testo estratto e stato di elaborazione.
@@ -177,6 +207,17 @@ I task suggeriti possono essere selezionati e creati in un'unica operazione atom
 
 Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 
+## Qualità e CI
+
+La pipeline GitHub Actions esegue Ruff, pytest con coverage, typecheck TypeScript, ESLint, Vitest, build Vite e build delle immagini Docker. I test AI utilizzano provider deterministici e non effettuano chiamate esterne.
+
+## Limiti consapevoli
+
+- L'elaborazione documentale è sincrona; un worker asincrono è il passo naturale per carichi elevati.
+- La cronologia della chat vive nella sessione browser e non viene ancora persistita.
+- Non è presente un sistema di inviti: il modello dati supporta i ruoli, mentre la gestione membri è una futura estensione.
+- Le chiamate AI dipendono dal provider configurato; tutte le funzioni non AI rimangono disponibili durante eventuali indisponibilità.
+
 ## Licenza
 
-La licenza non è ancora stata scelta.
+Distribuito con licenza MIT. Consulta [LICENSE](LICENSE).
