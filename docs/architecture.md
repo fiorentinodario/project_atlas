@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, initial database migration, and email/password authentication are implemented; project workflows and AI services remain planned.
+This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, and project management are implemented; task, document, and AI workflows remain planned.
 
 ## System Overview
 
@@ -27,6 +27,8 @@ The frontend uses React and TypeScript, with Tailwind CSS as the primary styling
 The Flask API uses an application factory, environment-specific configuration, versioned blueprints, restricted CORS, and a consistent JSON error contract. HTTP handlers will validate and translate requests; service modules will own future business workflows; persistence and external providers will remain replaceable at their boundaries.
 
 All project-scoped operations will enforce authorization on the server. A project identifier supplied by a client will never be treated as proof of access.
+
+Project management now applies this rule through a shared authorized lookup that joins projects to memberships for the authenticated user. Non-members receive `404` to avoid leaking private project existence. `OWNER` and `ADMIN` may update a project, while destructive deletion is restricted to `OWNER`. Project creation writes the project, owner membership, and initial activity record in one transaction.
 
 ## Authentication
 

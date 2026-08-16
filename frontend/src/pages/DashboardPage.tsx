@@ -5,9 +5,11 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { useAuth } from '../auth/useAuth'
+import { useNavigate } from 'react-router-dom'
 
 export function DashboardPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const firstName = user?.display_name.split(' ')[0] ?? 'there'
 
   return (
@@ -18,7 +20,7 @@ export function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Good morning, {firstName}</h1>
           <p className="mt-2 text-ink-500">Here’s what’s happening across your projects.</p>
         </div>
-        <Button><FolderPlus size={18} /> New project</Button>
+        <Button onClick={() => navigate('/projects')}><FolderPlus size={18} /> New project</Button>
       </section>
 
       <section aria-label="Project statistics" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

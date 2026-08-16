@@ -51,6 +51,7 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 2: fondazione API Flask con configurazione per ambiente, health check, CORS e gestione uniforme degli errori.
 - Milestone 3: modello relazionale PostgreSQL con SQLAlchemy e migrazione iniziale Alembic.
 - Milestone 4: autenticazione email/password, JWT con refresh rotation, logout e route frontend protette.
+- Milestone 5: CRUD progetti, autorizzazione per membership e workspace frontend.
 
 Le funzionalità mostrate nella dashboard usano attualmente dati mock. Persistenza e autenticazione saranno introdotte nei rispettivi milestone.
 
@@ -111,7 +112,15 @@ POST /api/v1/auth/login
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
 GET  /api/v1/auth/me
+
+GET    /api/v1/projects
+POST   /api/v1/projects
+GET    /api/v1/projects/:projectId
+PATCH  /api/v1/projects/:projectId
+DELETE /api/v1/projects/:projectId
 ```
+
+Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 
 ## Licenza
 

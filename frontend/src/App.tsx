@@ -3,6 +3,8 @@ import { GuestRoute, ProtectedRoute } from './auth/RouteGuards'
 import { AppLayout } from './components/layout/AppLayout'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ProjectsPage } from './pages/ProjectsPage'
+import { ProjectWorkspacePage } from './pages/ProjectWorkspacePage'
 import { LoginPage } from './pages/auth/LoginPage'
 import { RegisterPage } from './pages/auth/RegisterPage'
 
@@ -13,7 +15,8 @@ export function App() {
       <Route path="register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route index element={<DashboardPage />} />
-        <Route path="projects" element={<ComingSoonPage title="Projects" />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="projects/:projectId" element={<ProjectWorkspacePage />} />
         <Route path="tasks" element={<ComingSoonPage title="My tasks" />} />
         <Route path="knowledge" element={<ComingSoonPage title="Knowledge base" />} />
         <Route path="settings" element={<ComingSoonPage title="Settings" />} />
