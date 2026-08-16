@@ -12,6 +12,7 @@ import { TasksPanel } from '../components/tasks/TasksPanel'
 import { DocumentsPanel } from '../components/documents/DocumentsPanel'
 import { AssistantPanel } from '../components/assistant/AssistantPanel'
 import { DecisionsPanel } from '../components/decisions/DecisionsPanel'
+import { AnalysisPanel } from '../components/analyses/AnalysisPanel'
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -58,7 +59,7 @@ export function ProjectWorkspacePage() {
 
       <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-slate-200" aria-label="Project sections">{tabs.map((tab) => <button key={tab.id} onClick={() => setSearchParams(tab.id === 'overview' ? {} : { tab: tab.id })} className={`shrink-0 border-b-2 px-4 py-3 text-sm font-semibold ${activeTab === tab.id ? 'border-brand-500 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-950'}`}>{tab.label}</button>)}</nav>
 
-      {activeTab === 'decisions' ? <div className="mt-7"><DecisionsPanel projectId={project.id} role={project.role} /></div> : activeTab === 'assistant' ? <div className="mt-7"><AssistantPanel projectId={project.id} /></div> : activeTab === 'tasks' ? <div className="mt-7"><TasksPanel projectId={project.id} role={project.role} /></div> : activeTab === 'documents' ? <div className="mt-7"><DocumentsPanel projectId={project.id} role={project.role} /></div> : activeTab === 'overview' ? <><div className="mt-7 grid gap-4 sm:grid-cols-3">
+      {activeTab === 'analysis' ? <div className="mt-7"><AnalysisPanel projectId={project.id} role={project.role} /></div> : activeTab === 'decisions' ? <div className="mt-7"><DecisionsPanel projectId={project.id} role={project.role} /></div> : activeTab === 'assistant' ? <div className="mt-7"><AssistantPanel projectId={project.id} /></div> : activeTab === 'tasks' ? <div className="mt-7"><TasksPanel projectId={project.id} role={project.role} /></div> : activeTab === 'documents' ? <div className="mt-7"><DocumentsPanel projectId={project.id} role={project.role} /></div> : activeTab === 'overview' ? <><div className="mt-7 grid gap-4 sm:grid-cols-3">
         {[{ label: 'Documents', value: '0', icon: FileText }, { label: 'Open tasks', value: '0', icon: ListTodo }, { label: 'AI insights', value: 'Not analyzed', icon: Sparkles }].map(({ icon: Icon, label, value }) => <Card key={label} className="p-5"><div className="flex items-center justify-between"><div><p className="text-sm text-ink-500">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div><span className="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-700"><Icon size={20} /></span></div></Card>)}
       </div>
       <Card className="mt-6 p-6"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-ink-700"><Settings size={19} /></span><div><h2 className="font-bold">Workspace ready</h2><p className="mt-1 text-sm text-ink-500">Documents and AI tools will be activated in their dedicated milestones.</p></div></div></Card></> : <Card className="mt-7 p-8 text-center"><h2 className="font-bold">{tabs.find((tab) => tab.id === activeTab)?.label}</h2><p className="mt-2 text-sm text-ink-500">This section will be introduced in its dedicated milestone.</p></Card>}
