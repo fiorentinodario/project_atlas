@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowLeft, CalendarDays, FileText, ListTodo, MoreHorizontal, Settings, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
@@ -8,13 +8,24 @@ import { Card } from '../components/ui/Card'
 import { ApiClientError } from '../lib/api'
 import { deleteProject, getProject } from '../projects/api'
 import type { Project } from '../projects/types'
+import { TasksPanel } from '../components/tasks/TasksPanel'
 
-const tabs = ['Overview', 'Documents', 'Tasks', 'Decisions', 'AI Assistant', 'AI Analysis', 'Settings']
+const tabs = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'documents', label: 'Documents' },
+  { id: 'tasks', label: 'Tasks' },
+  { id: 'decisions', label: 'Decisions' },
+  { id: 'assistant', label: 'AI Assistant' },
+  { id: 'analysis', label: 'AI Analysis' },
+  { id: 'settings', label: 'Settings' },
+]
 
 export function ProjectWorkspacePage() {
   const { projectId } = useParams()
   const { accessToken } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') ?? 'overview'
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,12 +53,12 @@ export function ProjectWorkspacePage() {
         {project.role === 'OWNER' && <Button variant="secondary" onClick={() => void handleDelete()} className="text-red-600"><MoreHorizontal size={18} /> Delete project</Button>}
       </div>
 
-      <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-slate-200" aria-label="Project sections">{tabs.map((tab, index) => <button key={tab} className={`shrink-0 border-b-2 px-4 py-3 text-sm font-semibold ${index === 0 ? 'border-brand-500 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-950'}`}>{tab}</button>)}</nav>
+      <nav className="mt-8 flex gap-1 overflow-x-auto border-b border-slate-200" aria-label="Project sections">{tabs.map((tab) => <button key={tab.id} onClick={() => setSearchParams(tab.id === 'overview' ? {} : { tab: tab.id })} className={`shrink-0 border-b-2 px-4 py-3 text-sm font-semibold ${activeTab === tab.id ? 'border-brand-500 text-brand-700' : 'border-transparent text-ink-500 hover:text-ink-950'}`}>{tab.label}</button>)}</nav>
 
-      <div className="mt-7 grid gap-4 sm:grid-cols-3">
+      {activeTab === 'tasks' ? <div className="mt-7"><TasksPanel projectId={project.id} role={project.role} /></div> : activeTab === 'overview' ? <><div className="mt-7 grid gap-4 sm:grid-cols-3">
         {[{ label: 'Documents', value: '0', icon: FileText }, { label: 'Open tasks', value: '0', icon: ListTodo }, { label: 'AI insights', value: 'Not analyzed', icon: Sparkles }].map(({ icon: Icon, label, value }) => <Card key={label} className="p-5"><div className="flex items-center justify-between"><div><p className="text-sm text-ink-500">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div><span className="grid size-11 place-items-center rounded-xl bg-brand-50 text-brand-700"><Icon size={20} /></span></div></Card>)}
       </div>
-      <Card className="mt-6 p-6"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-ink-700"><Settings size={19} /></span><div><h2 className="font-bold">Workspace ready</h2><p className="mt-1 text-sm text-ink-500">Documents, tasks and AI tools will be activated in their dedicated milestones.</p></div></div></Card>
+      <Card className="mt-6 p-6"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-ink-700"><Settings size={19} /></span><div><h2 className="font-bold">Workspace ready</h2><p className="mt-1 text-sm text-ink-500">Documents and AI tools will be activated in their dedicated milestones.</p></div></div></Card></> : <Card className="mt-7 p-8 text-center"><h2 className="font-bold">{tabs.find((tab) => tab.id === activeTab)?.label}</h2><p className="mt-2 text-sm text-ink-500">This section will be introduced in its dedicated milestone.</p></Card>}
     </div>
   )
 }

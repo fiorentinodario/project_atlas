@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, and project management are implemented; task, document, and AI workflows remain planned.
+This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, project management, and task workflows are implemented; document and AI workflows remain planned.
 
 ## System Overview
 
@@ -29,6 +29,8 @@ The Flask API uses an application factory, environment-specific configuration, v
 All project-scoped operations will enforce authorization on the server. A project identifier supplied by a client will never be treated as proof of access.
 
 Project management now applies this rule through a shared authorized lookup that joins projects to memberships for the authenticated user. Non-members receive `404` to avoid leaking private project existence. `OWNER` and `ADMIN` may update a project, while destructive deletion is restricted to `OWNER`. Project creation writes the project, owner membership, and initial activity record in one transaction.
+
+Task routes reuse the same authorized project lookup. `VIEWER` memberships are read-only, while other project roles may create, update, change status, and delete tasks. Assignees must already belong to the same project. Task lists support bounded pagination, status and priority filters, and case-insensitive search. Mutations append activity records in the same transaction.
 
 ## Authentication
 
