@@ -57,6 +57,7 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 8: chunking offline, embedding sostituibili, pgvector e ricerca semantica con fonti.
 - Milestone 9: assistente AI contestuale con RAG, cronologia breve e provider LLM sostituibile.
 - Milestone 10: citazioni verificabili con documento, pagina, estratto e riferimento al chunk.
+- Milestone 11: decisioni manuali, rilevamento AI con fonti e conferma umana obbligatoria.
 
 Progetti, task e documenti usano dati persistenti tramite API. La ricerca semantica richiede un provider di embedding configurato; in sua assenza il resto dell'applicazione continua a funzionare.
 
@@ -135,6 +136,14 @@ DELETE /api/v1/documents/:documentId
 POST   /api/v1/documents/:documentId/index
 POST   /api/v1/projects/:projectId/search
 POST   /api/v1/projects/:projectId/assistant/messages
+
+GET    /api/v1/projects/:projectId/decisions
+POST   /api/v1/projects/:projectId/decisions
+POST   /api/v1/projects/:projectId/decisions/detect
+PATCH  /api/v1/decisions/:decisionId
+DELETE /api/v1/decisions/:decisionId
+POST   /api/v1/decisions/:decisionId/confirm
+POST   /api/v1/decisions/:decisionId/reject
 ```
 
 I documenti supportati sono PDF, TXT e Markdown, fino a 10 MB. I file vengono conservati fuori dal controllo versione con nomi generati, mentre il database mantiene metadati, testo estratto e stato di elaborazione.
@@ -153,6 +162,8 @@ LLM_MODEL=gpt-5-mini
 Il valore predefinito `EMBEDDING_PROVIDER=disabled` non effettua chiamate esterne. I documenti vengono comunque estratti e suddivisi in chunk, mentre la ricerca semantica risponde esplicitamente che il servizio AI non è configurato.
 
 Le risposte dell'assistente distinguono il testo generato dai metadati delle fonti. Le citazioni mostrate dall'interfaccia derivano direttamente dai chunk recuperati dal database e non da riferimenti liberamente generati dal modello.
+
+Le decisioni inserite manualmente sono fatti confermati. Quelle rilevate nei documenti dall'AI vengono invece salvate come proposte in attesa: entrano nel contesto fattuale dell'assistente soltanto dopo una conferma esplicita dell'utente.
 
 Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 
