@@ -15,6 +15,8 @@ export type ProjectAnalysis = {
   risks: Array<{ text: string; severity: 'LOW' | 'MEDIUM' | 'HIGH'; sources: AnalysisSource[] }>
   open_questions: Array<{ text: string; reason: string }>
   suggested_tasks: Array<{
+    index: number
+    created_task_id: string | null
     title: string
     description: string
     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'

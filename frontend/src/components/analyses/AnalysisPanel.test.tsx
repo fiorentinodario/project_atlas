@@ -1,7 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getLatestAnalysis, runProjectAnalysis } from '../../analyses/api'
+import {
+  createTasksFromAnalysis,
+  getLatestAnalysis,
+  runProjectAnalysis,
+} from '../../analyses/api'
 import type { ProjectAnalysis } from '../../analyses/types'
 import { useAuth } from '../../auth/useAuth'
 import { AnalysisPanel } from './AnalysisPanel'
@@ -9,6 +13,7 @@ import { AnalysisPanel } from './AnalysisPanel'
 vi.mock('../../analyses/api', () => ({
   getLatestAnalysis: vi.fn(),
   runProjectAnalysis: vi.fn(),
+  createTasksFromAnalysis: vi.fn(),
 }))
 vi.mock('../../auth/useAuth', () => ({ useAuth: vi.fn() }))
 
@@ -37,6 +42,8 @@ const analysis: ProjectAnalysis = {
   ],
   suggested_tasks: [
     {
+      index: 0,
+      created_task_id: null,
       title: 'Document token rotation',
       description: 'Define refresh token rotation behavior.',
       priority: 'HIGH',
@@ -78,5 +85,33 @@ describe('AnalysisPanel', () => {
     expect(screen.getByText('What is the launch date?')).toBeInTheDocument()
     expect(screen.getByText('Document token rotation')).toBeInTheDocument()
     expect(screen.getByText('requirements.txt · p. 1', { exact: false })).toBeInTheDocument()
+
+    vi.mocked(createTasksFromAnalysis).mockResolvedValue({
+      data: {
+        items: [
+          {
+            id: 'task-id',
+            project_id: 'project-id',
+            title: 'Document token rotation',
+            description: 'Define refresh token rotation behavior.',
+            status: 'TODO',
+            priority: 'HIGH',
+            due_date: null,
+            assigned_user: null,
+            created_by: { id: 'user-id', display_name: 'Dario' },
+            source: 'AI_GENERATED',
+            source_analysis_id: 'analysis-id',
+            source_suggestion_index: 0,
+            created_at: '2026-08-16T12:00:00Z',
+            updated_at: '2026-08-16T12:00:00Z',
+          },
+        ],
+      },
+    })
+    await user.click(screen.getByRole('checkbox', { name: 'Select Document token rotation' }))
+    await user.click(screen.getByRole('button', { name: 'Create selected tasks (1)' }))
+
+    expect(createTasksFromAnalysis).toHaveBeenCalledWith('analysis-id', [0], 'access-token')
+    expect(await screen.findByText('Created')).toBeInTheDocument()
   })
 })

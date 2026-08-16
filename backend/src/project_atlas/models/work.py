@@ -5,7 +5,18 @@ from datetime import datetime
 from typing import Any
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, BigInteger, DateTime, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from project_atlas.extensions import db
@@ -76,7 +87,14 @@ class DocumentChunk(TimestampMixin, db.Model):
 
 class Task(TimestampMixin, db.Model):
     __tablename__ = "tasks"
-    __table_args__ = (Index("ix_tasks_project_status", "project_id", "status"),)
+    __table_args__ = (
+        Index("ix_tasks_project_status", "project_id", "status"),
+        UniqueConstraint(
+            "source_analysis_id",
+            "source_suggestion_index",
+            name="uq_task_analysis_suggestion",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     project_id: Mapped[uuid.UUID] = mapped_column(
@@ -100,6 +118,10 @@ class Task(TimestampMixin, db.Model):
     source: Mapped[TaskSource] = mapped_column(
         Enum(TaskSource, name="task_source"), default=TaskSource.MANUAL, nullable=False
     )
+    source_analysis_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("ai_analyses.id", ondelete="SET NULL"), index=True
+    )
+    source_suggestion_index: Mapped[int | None] = mapped_column(Integer)
 
     project: Mapped[Project] = relationship(back_populates="tasks")
     assigned_user: Mapped[User | None] = relationship(foreign_keys=[assigned_user_id])

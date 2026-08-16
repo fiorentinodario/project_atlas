@@ -21,6 +21,8 @@ describe('TaskFormModal', () => {
       assigned_user: null,
       created_by: { id: 'user-id', display_name: 'Dario' },
       source: 'MANUAL' as const,
+      source_analysis_id: null,
+      source_suggestion_index: null,
       created_at: '2026-08-16T12:00:00Z',
       updated_at: '2026-08-16T12:00:00Z',
     }

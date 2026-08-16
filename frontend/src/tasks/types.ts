@@ -12,6 +12,8 @@ export type Task = {
   assigned_user: { id: string; display_name: string } | null
   created_by: { id: string; display_name: string }
   source: 'MANUAL' | 'AI_GENERATED'
+  source_analysis_id: string | null
+  source_suggestion_index: number | null
   created_at: string
   updated_at: string
 }

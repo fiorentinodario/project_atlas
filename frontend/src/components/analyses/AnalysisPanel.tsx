@@ -1,6 +1,10 @@
 import { AlertTriangle, CheckCircle2, CircleHelp, ClipboardList, LoaderCircle, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { getLatestAnalysis, runProjectAnalysis } from '../../analyses/api'
+import {
+  createTasksFromAnalysis,
+  getLatestAnalysis,
+  runProjectAnalysis,
+} from '../../analyses/api'
 import type { ProjectAnalysis } from '../../analyses/types'
 import { useAuth } from '../../auth/useAuth'
 import { ApiClientError } from '../../lib/api'
@@ -18,6 +22,8 @@ export function AnalysisPanel({ projectId, role }: { projectId: string; role: Pr
   const [analysis, setAnalysis] = useState<ProjectAnalysis | null>(null)
   const [isLoading, setLoading] = useState(true)
   const [isRunning, setRunning] = useState(false)
+  const [isCreatingTasks, setCreatingTasks] = useState(false)
+  const [selectedSuggestions, setSelectedSuggestions] = useState<Set<number>>(new Set())
   const [error, setError] = useState<string | null>(null)
   const canWrite = role !== 'VIEWER'
 
@@ -38,10 +44,48 @@ export function AnalysisPanel({ projectId, role }: { projectId: string; role: Pr
     try {
       const response = await runProjectAnalysis(projectId, accessToken)
       setAnalysis(response.data.analysis)
+      setSelectedSuggestions(new Set())
     } catch (caughtError) {
       setError(caughtError instanceof ApiClientError ? caughtError.message : 'Unable to analyze the project.')
     } finally {
       setRunning(false)
+    }
+  }
+
+  function toggleSuggestion(index: number) {
+    setSelectedSuggestions((current) => {
+      const next = new Set(current)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }
+
+  async function createSelectedTasks() {
+    if (!accessToken || !analysis || selectedSuggestions.size === 0) return
+    setCreatingTasks(true)
+    setError(null)
+    try {
+      const response = await createTasksFromAnalysis(
+        analysis.id,
+        [...selectedSuggestions],
+        accessToken,
+      )
+      const createdByIndex = new Map(
+        response.data.items.map((task) => [task.source_suggestion_index, task.id]),
+      )
+      setAnalysis({
+        ...analysis,
+        suggested_tasks: analysis.suggested_tasks.map((suggestion) => ({
+          ...suggestion,
+          created_task_id: createdByIndex.get(suggestion.index) ?? suggestion.created_task_id,
+        })),
+      })
+      setSelectedSuggestions(new Set())
+    } catch (caughtError) {
+      setError(caughtError instanceof ApiClientError ? caughtError.message : 'Unable to create tasks.')
+    } finally {
+      setCreatingTasks(false)
     }
   }
 
@@ -60,7 +104,7 @@ export function AnalysisPanel({ projectId, role }: { projectId: string; role: Pr
           <Card className="p-5"><div className="flex items-center gap-2"><CheckCircle2 className="text-emerald-600" size={19} /><h3 className="font-bold">Requirements</h3><Badge>{analysis.requirements.length}</Badge></div><div className="mt-4 space-y-3">{analysis.requirements.length === 0 ? <p className="text-sm text-ink-500">No requirements identified.</p> : analysis.requirements.map((item, index) => <div key={`${index}-${item.text}`} className="rounded-xl bg-slate-50 p-3"><p className="text-sm leading-6 text-ink-700">{item.text}</p><AnalysisSources sources={item.sources} /></div>)}</div></Card>
           <Card className="p-5"><div className="flex items-center gap-2"><AlertTriangle className="text-amber-600" size={19} /><h3 className="font-bold">Risks</h3><Badge tone="amber">{analysis.risks.length}</Badge></div><div className="mt-4 space-y-3">{analysis.risks.length === 0 ? <p className="text-sm text-ink-500">No risks identified.</p> : analysis.risks.map((item, index) => <div key={`${index}-${item.text}`} className="rounded-xl bg-slate-50 p-3"><div className="flex items-start justify-between gap-2"><p className="text-sm leading-6 text-ink-700">{item.text}</p><Badge tone={riskTone[item.severity]}>{item.severity}</Badge></div><AnalysisSources sources={item.sources} /></div>)}</div></Card>
           <Card className="p-5"><div className="flex items-center gap-2"><CircleHelp className="text-sky-600" size={19} /><h3 className="font-bold">Open questions</h3><Badge tone="blue">{analysis.open_questions.length}</Badge></div><div className="mt-4 space-y-3">{analysis.open_questions.length === 0 ? <p className="text-sm text-ink-500">No open questions identified.</p> : analysis.open_questions.map((item, index) => <div key={`${index}-${item.text}`} className="rounded-xl bg-slate-50 p-3"><p className="text-sm font-semibold text-ink-700">{item.text}</p><p className="mt-1 text-xs leading-5 text-ink-500">{item.reason}</p></div>)}</div></Card>
-          <Card className="p-5"><div className="flex items-center gap-2"><ClipboardList className="text-brand-600" size={19} /><h3 className="font-bold">Suggested tasks</h3><Badge tone="blue">{analysis.suggested_tasks.length}</Badge></div><div className="mt-4 space-y-3">{analysis.suggested_tasks.length === 0 ? <p className="text-sm text-ink-500">No tasks suggested.</p> : analysis.suggested_tasks.map((item, index) => <div key={`${index}-${item.title}`} className="rounded-xl bg-slate-50 p-3"><div className="flex items-start justify-between gap-2"><p className="text-sm font-bold text-ink-700">{item.title}</p><Badge tone={priorityTone[item.priority]}>{item.priority}</Badge></div><p className="mt-1 text-xs leading-5 text-ink-500">{item.description}</p><p className="mt-2 text-xs text-brand-700">Why: {item.reason}</p><AnalysisSources sources={item.sources} /></div>)}</div><p className="mt-4 text-xs text-ink-500">Task creation from selected suggestions will be enabled in the next milestone.</p></Card>
+          <Card className="p-5"><div className="flex items-center gap-2"><ClipboardList className="text-brand-600" size={19} /><h3 className="font-bold">Suggested tasks</h3><Badge tone="blue">{analysis.suggested_tasks.length}</Badge></div><div className="mt-4 space-y-3">{analysis.suggested_tasks.length === 0 ? <p className="text-sm text-ink-500">No tasks suggested.</p> : analysis.suggested_tasks.map((item) => <label key={`${item.index}-${item.title}`} className={`block rounded-xl p-3 ${item.created_task_id ? 'bg-emerald-50/60' : 'bg-slate-50'} ${canWrite && !item.created_task_id ? 'cursor-pointer' : ''}`}><div className="flex items-start gap-3">{canWrite && <input type="checkbox" aria-label={`Select ${item.title}`} checked={Boolean(item.created_task_id) || selectedSuggestions.has(item.index)} disabled={Boolean(item.created_task_id) || isCreatingTasks} onChange={() => toggleSuggestion(item.index)} className="mt-1 size-4 rounded border-slate-300 text-brand-600" />}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><p className="text-sm font-bold text-ink-700">{item.title}</p><div className="flex gap-2">{item.created_task_id && <Badge tone="green">Created</Badge>}<Badge tone={priorityTone[item.priority]}>{item.priority}</Badge></div></div><p className="mt-1 text-xs leading-5 text-ink-500">{item.description}</p><p className="mt-2 text-xs text-brand-700">Why: {item.reason}</p><AnalysisSources sources={item.sources} /></div></div></label>)}</div>{canWrite && analysis.suggested_tasks.some((item) => !item.created_task_id) && <Button className="mt-4 w-full" disabled={selectedSuggestions.size === 0 || isCreatingTasks} onClick={() => void createSelectedTasks()}>{isCreatingTasks ? <LoaderCircle className="animate-spin" size={17} /> : <ClipboardList size={17} />}{isCreatingTasks ? 'Creating tasks…' : `Create selected tasks (${selectedSuggestions.size})`}</Button>}</Card>
         </div>
       </div>}
     </section>

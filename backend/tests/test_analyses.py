@@ -6,8 +6,8 @@ from flask.testing import FlaskClient
 from sqlalchemy import func, select
 
 from project_atlas.extensions import db
-from project_atlas.models import ActivityLog, AIAnalysis, Project, ProjectMember, User
-from project_atlas.models.enums import ProjectRole
+from project_atlas.models import ActivityLog, AIAnalysis, Project, ProjectMember, Task, User
+from project_atlas.models.enums import ProjectRole, TaskSource
 
 
 class FakeEmbeddingProvider:
@@ -125,8 +125,33 @@ def test_analysis_is_validated_persisted_and_retrievable(app: Flask, client: Fla
     latest = client.get(f"/api/v1/projects/{project_id}/analyses/latest", headers=auth(token))
     assert latest.status_code == 200
     assert latest.get_json()["data"]["analysis"]["id"] == analysis["id"]
+
+    generated = client.post(
+        f"/api/v1/analyses/{analysis['id']}/tasks",
+        json={"suggestion_indices": [0]},
+        headers=auth(token),
+    )
+    assert generated.status_code == 201
+    generated_task = generated.get_json()["data"]["items"][0]
+    assert generated_task["source"] == "AI_GENERATED"
+    assert generated_task["source_analysis_id"] == analysis["id"]
+    assert generated_task["source_suggestion_index"] == 0
+
+    refreshed = client.get(f"/api/v1/projects/{project_id}/analyses/latest", headers=auth(token))
+    suggestion = refreshed.get_json()["data"]["analysis"]["suggested_tasks"][0]
+    assert suggestion["index"] == 0
+    assert suggestion["created_task_id"] == generated_task["id"]
+
+    duplicate = client.post(
+        f"/api/v1/analyses/{analysis['id']}/tasks",
+        json={"suggestion_indices": [0]},
+        headers=auth(token),
+    )
+    assert duplicate.status_code == 409
     with app.app_context():
         assert db.session.scalar(select(func.count(AIAnalysis.id))) == 1
+        task = db.session.scalar(select(Task))
+        assert task.source is TaskSource.AI_GENERATED
         activity = db.session.scalar(
             select(ActivityLog).where(ActivityLog.action == "AI_ANALYSIS_COMPLETED")
         )

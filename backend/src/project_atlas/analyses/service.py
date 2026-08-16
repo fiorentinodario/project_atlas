@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from project_atlas.ai_assistant.providers import LLMProvider, LLMProviderError
 from project_atlas.extensions import db
-from project_atlas.models import ActivityLog, AIAnalysis, Project, User
+from project_atlas.models import ActivityLog, AIAnalysis, Project, Task, User
 from project_atlas.models.enums import TaskPriority
 from project_atlas.projects.service import accessible_project
 from project_atlas.rag.providers import EmbeddingProvider, EmbeddingProviderError
@@ -187,6 +187,14 @@ def _validate_analysis(value: dict, chunks: list[RetrievedChunk]) -> dict:
 
 
 def serialize_analysis(analysis: AIAnalysis) -> dict:
+    created_tasks = {
+        index: str(task_id)
+        for index, task_id in db.session.execute(
+            select(Task.source_suggestion_index, Task.id).where(
+                Task.source_analysis_id == analysis.id
+            )
+        )
+    }
     return {
         "id": str(analysis.id),
         "project_id": str(analysis.project_id),
@@ -194,7 +202,14 @@ def serialize_analysis(analysis: AIAnalysis) -> dict:
         "requirements": analysis.requirements,
         "risks": analysis.risks,
         "open_questions": analysis.open_questions,
-        "suggested_tasks": analysis.suggested_tasks,
+        "suggested_tasks": [
+            {
+                **suggestion,
+                "index": index,
+                "created_task_id": created_tasks.get(index),
+            }
+            for index, suggestion in enumerate(analysis.suggested_tasks)
+        ],
         "provider": analysis.provider,
         "model": analysis.model,
         "requested_by": {

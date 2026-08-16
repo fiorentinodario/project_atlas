@@ -43,6 +43,8 @@ def serialize_task(task: Task) -> dict:
             "display_name": task.created_by.display_name,
         },
         "source": task.source.value,
+        "source_analysis_id": str(task.source_analysis_id) if task.source_analysis_id else None,
+        "source_suggestion_index": task.source_suggestion_index,
         "created_at": task.created_at.isoformat(),
         "updated_at": task.updated_at.isoformat(),
     }

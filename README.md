@@ -59,6 +59,7 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 10: citazioni verificabili con documento, pagina, estratto e riferimento al chunk.
 - Milestone 11: decisioni manuali, rilevamento AI con fonti e conferma umana obbligatoria.
 - Milestone 12: analisi AI strutturata con riepilogo, requisiti, rischi, domande e task suggeriti.
+- Milestone 13: selezione dei suggerimenti e creazione atomica di task AI tracciabili.
 
 Progetti, task e documenti usano dati persistenti tramite API. La ricerca semantica richiede un provider di embedding configurato; in sua assenza il resto dell'applicazione continua a funzionare.
 
@@ -148,6 +149,7 @@ POST   /api/v1/decisions/:decisionId/reject
 
 GET    /api/v1/projects/:projectId/analyses/latest
 POST   /api/v1/projects/:projectId/analyses
+POST   /api/v1/analyses/:analysisId/tasks
 ```
 
 I documenti supportati sono PDF, TXT e Markdown, fino a 10 MB. I file vengono conservati fuori dal controllo versione con nomi generati, mentre il database mantiene metadati, testo estratto e stato di elaborazione.
@@ -170,6 +172,8 @@ Le risposte dell'assistente distinguono il testo generato dai metadati delle fon
 Le decisioni inserite manualmente sono fatti confermati. Quelle rilevate nei documenti dall'AI vengono invece salvate come proposte in attesa: entrano nel contesto fattuale dell'assistente soltanto dopo una conferma esplicita dell'utente.
 
 L'analisi AI produce dati strutturati e validati per riepilogo, requisiti, rischi, domande aperte e task suggeriti. I riferimenti indicati dal modello vengono risolti dal backend contro i chunk realmente recuperati prima che l'analisi venga salvata.
+
+I task suggeriti possono essere selezionati e creati in un'unica operazione atomica. Ogni task mantiene l'origine `AI_GENERATED`, l'analisi sorgente e l'indice del suggerimento; un vincolo del database impedisce conversioni duplicate.
 
 Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 
