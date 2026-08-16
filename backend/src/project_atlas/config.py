@@ -18,6 +18,8 @@ class BaseConfig:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     EMBEDDING_DIMENSIONS = int(os.getenv("EMBEDDING_DIMENSIONS", "1536"))
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "disabled")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gpt-5-mini")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "postgresql+psycopg://atlas:atlas@localhost:5432/project_atlas",

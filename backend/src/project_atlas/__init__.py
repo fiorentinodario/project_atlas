@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 from project_atlas import models  # noqa: F401
 from project_atlas.__version__ import __version__
+from project_atlas.ai_assistant.providers import build_llm_provider
 from project_atlas.api import api_blueprint
 from project_atlas.auth.jwt_callbacks import register_jwt_callbacks
 from project_atlas.config import config_by_name
@@ -51,6 +52,7 @@ def create_app(
     register_jwt_callbacks(jwt)
     migrate.init_app(app, db)
     app.extensions["embedding_provider"] = build_embedding_provider(app.config)
+    app.extensions["llm_provider"] = build_llm_provider(app.config)
 
     app.register_blueprint(api_blueprint, url_prefix="/api/v1")
     register_error_handlers(app)
