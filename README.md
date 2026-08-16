@@ -1,64 +1,80 @@
 # ProjectAtlas
 
-ProjectAtlas is an AI-powered project knowledge and management platform. It brings project documents, tasks, decisions, and AI-assisted analysis into a single workspace so teams can ask questions grounded in their own project data.
+ProjectAtlas è una piattaforma di gestione e conoscenza dei progetti basata sull'intelligenza artificiale. Riunisce documenti, attività, decisioni e analisi assistite dall'AI in un unico spazio di lavoro, permettendo ai team di porre domande fondate sui dati dei propri progetti.
 
-This repository is being built as a production-minded portfolio project, with an emphasis on clear architecture, secure authorization, reliable AI behavior, automated testing, and a polished responsive interface.
+Il repository è sviluppato come progetto portfolio con attenzione ad architettura, autorizzazione sicura, affidabilità delle funzionalità AI, test automatici e interfaccia responsive professionale.
 
-## Planned MVP Features
+## Funzionalità previste per l'MVP
 
-- Email and password authentication
-- Project workspaces with ownership-based access control
-- Task, document, and project-decision management
-- PDF, text, and Markdown document ingestion
-- Retrieval-augmented project Q&A with source citations
-- Structured AI project analysis and task suggestions
-- Activity tracking and dashboard summaries
+- Autenticazione tramite email e password
+- Spazi di lavoro con controllo degli accessi basato sulla proprietà
+- Gestione di attività, documenti e decisioni progettuali
+- Acquisizione di documenti PDF, testo e Markdown
+- Domande e risposte basate su RAG con citazione delle fonti
+- Analisi strutturata del progetto e suggerimenti di attività tramite AI
+- Registro attività e riepiloghi nella dashboard
 
-## Planned Tech Stack
+## Stack tecnologico
 
-| Layer | Technology |
+| Livello | Tecnologia |
 | --- | --- |
-| Frontend | React, TypeScript, Tailwind CSS |
+| Frontend | React, TypeScript, Tailwind CSS, Vite |
 | Backend | Python, Flask |
-| Database | PostgreSQL with pgvector |
-| AI | Provider-agnostic interfaces, initially backed by OpenAI |
-| Infrastructure | Docker Compose, GitHub Actions |
+| Database | PostgreSQL con pgvector |
+| AI | Interfacce indipendenti dal provider, inizialmente OpenAI |
+| Infrastruttura | Docker Compose, GitHub Actions |
 
-## Repository Structure
+## Struttura del repository
 
 ```text
 project-atlas/
-├── backend/            # Flask REST API (introduced in Milestone 2)
-├── frontend/           # React application (introduced in Milestone 1)
+├── backend/            # API REST Flask, dal Milestone 2
+├── frontend/           # Applicazione React
 ├── docs/
-│   └── architecture.md # Evolving technical decisions and system design
+│   └── architecture.md # Decisioni tecniche e architettura in evoluzione
 ├── .gitignore
 └── README.md
 ```
 
-The application code will be introduced in focused milestones. Empty tracked directories currently mark the intended monorepo boundaries without prematurely selecting implementation details.
+## Architettura
 
-## Architecture
+Il client React comunicherà con un'API REST Flask versionata. Il backend gestirà autenticazione, autorizzazione, regole applicative, acquisizione dei documenti e orchestrazione AI. PostgreSQL conserverà i dati applicativi, mentre pgvector manterrà gli embedding vicini ai metadati e ai dati transazionali del progetto.
 
-The React client will communicate with a versioned Flask REST API. The backend will own authentication, authorization, business rules, document ingestion, and AI orchestration. PostgreSQL will store application data, while pgvector will keep embeddings close to document metadata and transactional project data.
+Le responsabilità AI saranno separate in servizi di acquisizione, embedding, recupero, costruzione dei prompt e generazione. Questa divisione rende i provider sostituibili, permette test deterministici e mantiene utilizzabili le funzionalità non AI durante eventuali indisponibilità del provider.
 
-AI concerns will be separated into ingestion, embedding, retrieval, prompt construction, and generation services. This keeps providers replaceable, enables deterministic tests with fakes, and ensures non-AI features remain usable during provider outages.
+Consulta [docs/architecture.md](docs/architecture.md) per il piano architetturale corrente.
 
-See [docs/architecture.md](docs/architecture.md) for the current architectural plan.
+## Stato dello sviluppo
 
-## Development Status
+- Milestone 0: struttura del repository e pianificazione architetturale completate.
+- Milestone 1: base frontend responsive implementata con dashboard dimostrativa e routing.
 
-Milestone 0 establishes repository structure and architecture only. Application setup begins in Milestone 1 after the initial commit is reviewed and pushed.
+Le funzionalità mostrate nella dashboard usano attualmente dati mock. Backend, persistenza e autenticazione saranno introdotti nei rispettivi milestone.
 
-## Local Development
+## Sviluppo locale
 
-Setup instructions will be added alongside each runnable application layer so the documentation remains accurate to the implemented system.
+Prerequisiti frontend: Node.js 22 e npm 10 o versioni compatibili.
 
-## Security
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-Secrets and local environment files must never be committed. Future authentication, upload, and AI endpoints will validate inputs and enforce project-level authorization on the server.
+Controlli di qualità disponibili:
 
-## License
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
 
-A license has not yet been selected.
+Le istruzioni del backend verranno aggiunte quando esisterà un livello applicativo eseguibile.
 
+## Sicurezza
+
+Secret e file di ambiente locali non devono essere aggiunti al repository. I futuri endpoint di autenticazione, caricamento e AI convalideranno gli input e applicheranno sul server l'autorizzazione per ogni progetto.
+
+## Licenza
+
+La licenza non è ancora stata scelta.

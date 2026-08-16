@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  --color-ink-950: #15221d;
+  --color-ink-700: #415149;
+  --color-ink-500: #718079;
+  --color-canvas: #f7f8f5;
+  --color-brand-50: #eefbf6;
+  --color-brand-100: #d8f5e9;
+  --color-brand-500: #20a978;
+  --color-brand-600: #168861;
+  --color-brand-700: #126e51;
+  --shadow-panel: 0 1px 2px rgb(21 34 29 / 0.04), 0 12px 36px rgb(21 34 29 / 0.06);
+}
+
+@layer base {
+  * {
+    border-color: #e4e9e5;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink-950);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  a,
+  input {
+    outline-offset: 3px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+  }
+}
