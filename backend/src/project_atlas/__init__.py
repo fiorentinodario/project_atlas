@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 from flask import Flask
@@ -26,6 +27,8 @@ def create_app(
     app.config.from_object(config_class)
     if config_override:
         app.config.from_mapping(config_override)
+    if not app.config["UPLOAD_FOLDER"]:
+        app.config["UPLOAD_FOLDER"] = str(Path(app.instance_path) / "uploads")
 
     if config_name == "production":
         insecure_keys = {

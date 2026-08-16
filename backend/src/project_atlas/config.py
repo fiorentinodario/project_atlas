@@ -13,6 +13,7 @@ class BaseConfig:
     JSON_SORT_KEYS = False
     CORS_ORIGINS = _cors_origins()
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "postgresql+psycopg://atlas:atlas@localhost:5432/project_atlas",

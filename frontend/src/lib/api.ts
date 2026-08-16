@@ -34,7 +34,9 @@ export async function apiRequest<T>(
   accessToken?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers)
-  if (options.body) headers.set('Content-Type', 'application/json')
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
   if (path === '/auth/refresh' || path === '/auth/logout') {
     const csrfToken = cookieValue('csrf_refresh_token')

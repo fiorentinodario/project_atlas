@@ -7,12 +7,13 @@ from project_atlas.extensions import db
 
 
 @pytest.fixture()
-def app() -> Flask:
+def app(tmp_path) -> Flask:
     app = create_app(
         "testing",
         {
             "SQLALCHEMY_DATABASE_URI": "sqlite+pysqlite:///:memory:",
             "SQLALCHEMY_ENGINE_OPTIONS": {},
+            "UPLOAD_FOLDER": str(tmp_path / "uploads"),
         },
     )
     with app.app_context():

@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, project management, and task workflows are implemented; document and AI workflows remain planned.
+This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, authentication, project, task, and initial document workflows are implemented; vector retrieval and AI workflows remain planned.
 
 ## System Overview
 
@@ -89,6 +89,8 @@ flowchart LR
 ```
 
 Ingestion, embedding, retrieval, prompt construction, and generation will be separate services. Chunks will retain document, page, and chunk metadata for citations. Structured model output will be schema-validated before it can affect stored project data, and suggested decisions or tasks will require user confirmation.
+
+The implemented ingestion stage validates PDF, TXT, and Markdown uploads, saves them beneath a private configured storage root, and extracts text through format-specific functions. PDF pages are separated with form-feed boundaries so page metadata can be preserved during later chunking. Malformed or textless documents transition to `FAILED` with a safe public error instead of breaking unrelated application workflows. Processing is synchronous for now but isolated from HTTP routing so it can move to a background worker later.
 
 ## Reliability and Security Boundaries
 

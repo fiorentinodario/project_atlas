@@ -53,6 +53,7 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 - Milestone 4: autenticazione email/password, JWT con refresh rotation, logout e route frontend protette.
 - Milestone 5: CRUD progetti, autorizzazione per membership e workspace frontend.
 - Milestone 6: gestione task con ricerca, filtri, Kanban e activity log.
+- Milestone 7: upload documenti, storage privato, estrazione testuale e stati di elaborazione.
 
 Le funzionalità mostrate nella dashboard usano attualmente dati mock. Persistenza e autenticazione saranno introdotte nei rispettivi milestone.
 
@@ -124,7 +125,13 @@ GET    /api/v1/projects/:projectId/tasks
 POST   /api/v1/projects/:projectId/tasks
 PATCH  /api/v1/tasks/:taskId
 DELETE /api/v1/tasks/:taskId
+
+GET    /api/v1/projects/:projectId/documents
+POST   /api/v1/projects/:projectId/documents
+DELETE /api/v1/documents/:documentId
 ```
+
+I documenti supportati sono PDF, TXT e Markdown, fino a 10 MB. I file vengono conservati fuori dal controllo versione con nomi generati, mentre il database mantiene metadati, testo estratto e stato di elaborazione.
 
 Le liste dei progetti sono paginate. Gli utenti esterni a un progetto ricevono una risposta `404`, mentre le operazioni di modifica e cancellazione applicano i ruoli della membership sul server.
 
