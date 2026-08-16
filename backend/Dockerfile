@@ -7,7 +7,7 @@ RUN addgroup --system atlas && adduser --system --ingroup atlas atlas
 COPY pyproject.toml ./
 COPY src ./src
 COPY migrations ./migrations
-COPY wsgi.py alembic.ini ./
+COPY wsgi.py ./
 RUN pip install --no-cache-dir .
 
 RUN mkdir -p /app/instance/uploads && chown -R atlas:atlas /app
