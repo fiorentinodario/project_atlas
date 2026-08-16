@@ -2,7 +2,7 @@
 
 ## Status
 
-This document distinguishes the implemented foundation from planned components. The React application shell and Flask API foundation are implemented; persistence, authentication, and AI services remain planned.
+This document distinguishes the implemented foundation from planned components. The React application shell, Flask API foundation, relational models, and initial database migration are implemented; authentication and AI services remain planned.
 
 ## System Overview
 
@@ -30,7 +30,23 @@ All project-scoped operations will enforce authorization on the server. A projec
 
 ## Data
 
-PostgreSQL is the system of record for users, projects, memberships, documents, chunks, tasks, decisions, analyses, activity, and authentication state. Foreign keys and migrations will preserve relational integrity. pgvector is planned for semantic search so embeddings and their document metadata can be queried together.
+PostgreSQL is the system of record for users, projects, memberships, documents, chunks, tasks, decisions, analyses, activity, and refresh-token state. SQLAlchemy models and an Alembic migration now define the initial schema. Foreign keys, unique constraints, enums, and targeted indexes preserve integrity and support expected access patterns. pgvector remains planned for semantic search so embeddings and their document metadata can be queried together.
+
+```mermaid
+erDiagram
+    USER ||--o{ PROJECT : owns
+    USER ||--o{ PROJECT_MEMBER : joins
+    PROJECT ||--o{ PROJECT_MEMBER : includes
+    PROJECT ||--o{ DOCUMENT : contains
+    DOCUMENT ||--o{ DOCUMENT_CHUNK : splits_into
+    PROJECT ||--o{ TASK : tracks
+    PROJECT ||--o{ PROJECT_DECISION : records
+    PROJECT ||--o{ AI_ANALYSIS : produces
+    PROJECT ||--o{ ACTIVITY_LOG : emits
+    USER ||--o{ REFRESH_TOKEN : receives
+```
+
+UUID primary keys are used for externally referenced entities. Project membership is modeled explicitly so authorization can evolve from ownership to role-based access. AI-detected decisions carry a pending state until a user confirms or rejects them, and refresh tokens are represented by hashes rather than raw credentials.
 
 ## Document Ingestion and RAG
 

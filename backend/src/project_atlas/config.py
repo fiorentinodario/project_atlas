@@ -11,6 +11,12 @@ class BaseConfig:
     JSON_SORT_KEYS = False
     CORS_ORIGINS = _cors_origins()
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "DATABASE_URL",
+        "postgresql+psycopg://atlas:atlas@localhost:5432/project_atlas",
+    )
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
 
 
 class DevelopmentConfig(BaseConfig):
