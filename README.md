@@ -48,8 +48,9 @@ Consulta [docs/architecture.md](docs/architecture.md) per il piano architettural
 
 - Milestone 0: struttura del repository e pianificazione architetturale completate.
 - Milestone 1: base frontend responsive implementata con dashboard dimostrativa e routing.
+- Milestone 2: fondazione API Flask con configurazione per ambiente, health check, CORS e gestione uniforme degli errori.
 
-Le funzionalità mostrate nella dashboard usano attualmente dati mock. Backend, persistenza e autenticazione saranno introdotti nei rispettivi milestone.
+Le funzionalità mostrate nella dashboard usano attualmente dati mock. Persistenza e autenticazione saranno introdotte nei rispettivi milestone.
 
 ## Sviluppo locale
 
@@ -69,7 +70,26 @@ npm run lint
 npm run build
 ```
 
-Le istruzioni del backend verranno aggiunte quando esisterà un livello applicativo eseguibile.
+Prerequisito backend: Python 3.11 o versione compatibile successiva.
+
+```bash
+cd backend
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+cp .env.example .env
+flask --app wsgi run --debug
+```
+
+L'health endpoint sarà disponibile su `http://localhost:5000/api/v1/health`.
+
+Controlli di qualità backend:
+
+```bash
+ruff check .
+ruff format --check .
+pytest
+```
 
 ## Sicurezza
 

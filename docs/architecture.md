@@ -2,7 +2,7 @@
 
 ## Status
 
-This document records the initial architecture plan. Components described here are not implemented until their corresponding milestone is completed.
+This document distinguishes the implemented foundation from planned components. The React application shell and Flask API foundation are implemented; persistence, authentication, and AI services remain planned.
 
 ## System Overview
 
@@ -20,11 +20,11 @@ The repository uses a monorepo so frontend, backend, infrastructure, tests, and 
 
 ## Frontend
 
-The frontend will use React and TypeScript, with Tailwind CSS as the primary styling system. Server state, authentication state, and local interface state will remain separate. A small reusable component layer will support accessibility and consistent loading, empty, success, and error states.
+The frontend uses React and TypeScript, with Tailwind CSS as the primary styling system. Its responsive application shell, routing, initial reusable components, and mock dashboard are implemented. Server state, authentication state, and local interface state will remain separate as data integration is introduced.
 
 ## Backend
 
-The Flask API will use an application factory and feature-oriented modules instead of a single application file. HTTP handlers will validate and translate requests; service modules will own business workflows; persistence and external providers will remain replaceable at their boundaries.
+The Flask API uses an application factory, environment-specific configuration, versioned blueprints, restricted CORS, and a consistent JSON error contract. HTTP handlers will validate and translate requests; service modules will own future business workflows; persistence and external providers will remain replaceable at their boundaries.
 
 All project-scoped operations will enforce authorization on the server. A project identifier supplied by a client will never be treated as proof of access.
 
@@ -76,4 +76,3 @@ Keeping relational data and vectors in PostgreSQL reduces operational complexity
 ### Synchronous ingestion first
 
 The first ingestion pipeline will be synchronous but isolated behind a service boundary. A background queue is appropriate once processing latency or volume justifies the added operational complexity.
-
